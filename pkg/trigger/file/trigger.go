@@ -3,7 +3,6 @@ package trigger
 import "os"
 
 const (
-	FileName  = "/Users/jamesmilligan/code/flagd-1/config/samples/example_flags.json"
 	StartSpec = `
 	{
 		"flags": {
@@ -13,10 +12,133 @@ const (
 			  "on": true,
 			  "off": false
 			},
-			"defaultVariant": "off"
+			"defaultVariant": "on"
+		  },
+		  "myStringFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "key1": "val1",
+			  "key2": "val2"
+			},
+			"defaultVariant": "key1"
+		  },
+		  "myFloatFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "one": 1.23,
+			  "two": 2.34
+			},
+			"defaultVariant": "one"
+		  },
+		  "myIntFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "one": 1,
+			  "two": 2
+			},
+			"defaultVariant": "one"
+		  },
+		  "myObjectFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "object1": {
+				"key": "val"
+			  },
+			  "object2": {
+				"key": true
+			  }
+			},
+			"defaultVariant": "object1"
+		  },
+		  "isColorYellow": {
+			"state": "ENABLED",
+			"variants": {
+			  "on": true,
+			  "off": false
+			},
+			"defaultVariant": "off",
+			"targeting": {
+			  "if": [
+				{
+				  "==": [
+					{
+					  "var": [
+						"color"
+					  ]
+					},
+					"yellow"
+				  ]
+				},
+				"on",
+				"off"
+			  ]
+			}
+		  },
+		  "fibAlgo": {
+			"variants": {
+			  "recursive": "recursive",
+			  "memo": "memo",
+			  "loop": "loop",
+			  "binet": "binet"
+			},
+			"defaultVariant": "recursive",
+			"state": "ENABLED",
+			"targeting": {
+			  "if": [
+				{
+				  "$ref": "emailWithFaas"
+				}, "binet", null
+			  ]
+			}
+		  },
+		  "headerColor": {
+			"variants": {
+			  "red": "#FF0000",
+			  "blue": "#0000FF",
+			  "green": "#00FF00",
+			  "yellow": "#FFFF00"
+			},
+			"defaultVariant": "red",
+			"state": "ENABLED",
+			"targeting": {
+			  "if": [
+				{
+				  "$ref": "emailWithFaas"
+				},
+				{
+				  "fractionalEvaluation": [
+					"email",
+					[
+					  "red",
+					  25
+					],
+					[
+					  "blue",
+					  25
+					],
+					[
+					  "green",
+					  25
+					],
+					[
+					  "yellow",
+					  25
+					]
+				  ]
+				}, null
+			  ]
+			}
+		  }
+		},
+		"$evaluators": {
+		  "emailWithFaas": {
+				"in": ["@faas.com", {
+				  "var": ["email"]
+				}]
 		  }
 		}
-	}`
+	  }
+	  `
 	UpdatedSpec = `
 	{
 		"flags": {
@@ -26,20 +148,143 @@ const (
 			  "on": true,
 			  "off": false
 			},
-			"defaultVariant": "on"
+			"defaultVariant": "off"
+		  },
+		  "myStringFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "key1": "val1",
+			  "key2": "val2"
+			},
+			"defaultVariant": "key1"
+		  },
+		  "myFloatFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "one": 1.23,
+			  "two": 2.34
+			},
+			"defaultVariant": "one"
+		  },
+		  "myIntFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "one": 1,
+			  "two": 2
+			},
+			"defaultVariant": "one"
+		  },
+		  "myObjectFlag": {
+			"state": "ENABLED",
+			"variants": {
+			  "object1": {
+				"key": "val"
+			  },
+			  "object2": {
+				"key": true
+			  }
+			},
+			"defaultVariant": "object1"
+		  },
+		  "isColorYellow": {
+			"state": "ENABLED",
+			"variants": {
+			  "on": true,
+			  "off": false
+			},
+			"defaultVariant": "off",
+			"targeting": {
+			  "if": [
+				{
+				  "==": [
+					{
+					  "var": [
+						"color"
+					  ]
+					},
+					"yellow"
+				  ]
+				},
+				"on",
+				"off"
+			  ]
+			}
+		  },
+		  "fibAlgo": {
+			"variants": {
+			  "recursive": "recursive",
+			  "memo": "memo",
+			  "loop": "loop",
+			  "binet": "binet"
+			},
+			"defaultVariant": "recursive",
+			"state": "ENABLED",
+			"targeting": {
+			  "if": [
+				{
+				  "$ref": "emailWithFaas"
+				}, "binet", null
+			  ]
+			}
+		  },
+		  "headerColor": {
+			"variants": {
+			  "red": "#FF0000",
+			  "blue": "#0000FF",
+			  "green": "#00FF00",
+			  "yellow": "#FFFF00"
+			},
+			"defaultVariant": "red",
+			"state": "ENABLED",
+			"targeting": {
+			  "if": [
+				{
+				  "$ref": "emailWithFaas"
+				},
+				{
+				  "fractionalEvaluation": [
+					"email",
+					[
+					  "red",
+					  25
+					],
+					[
+					  "blue",
+					  25
+					],
+					[
+					  "green",
+					  25
+					],
+					[
+					  "yellow",
+					  25
+					]
+				  ]
+				}, null
+			  ]
+			}
 		  }
-		} 
-	}`
+		},
+		"$evaluators": {
+		  "emailWithFaas": {
+				"in": ["@faas.com", {
+				  "var": ["email"]
+				}]
+		  }
+		}
+	  }
+	  `
 )
 
-func SetupFile() error {
-	return os.WriteFile(FileName, []byte(StartSpec), 0644)
+func SetupFile(filename string) error {
+	return os.WriteFile(filename, []byte(StartSpec), 0644)
 }
 
-func UpdateFile() error {
-	return os.WriteFile(FileName, []byte(UpdatedSpec), 0644)
+func UpdateFile(filename string) error {
+	return os.WriteFile(filename, []byte(UpdatedSpec), 0644)
 }
 
-func Cleanup() error {
-	return os.Remove(FileName)
+func Cleanup(filename string) error {
+	return os.Remove(filename)
 }

@@ -3,52 +3,54 @@ package watcher
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
-	syncv1 "buf.build/gen/go/open-feature/flagd/bufbuild/connect-go/sync/v1/syncv1connect"
+	"buf.build/gen/go/open-feature/flagd/grpc/go/sync/v1/syncv1grpc"
 	syncv1Types "buf.build/gen/go/open-feature/flagd/protocolbuffers/go/sync/v1"
-
-	"github.com/bufbuild/connect-go"
-	"github.com/james-milligan/flagd-proxy-profiling/pkg/client"
 )
 
 const (
-	timeoutSeconds = 20
+	timeoutSeconds = 10
 )
 
 type Watcher struct {
-	client syncv1.FlagSyncServiceClient
+	client syncv1grpc.FlagSyncServiceClient
 	Stream chan syncv1Types.SyncState
 	Ready  chan struct{}
 }
 
-func NewWatcher(host string, port uint16) *Watcher {
+func NewWatcher(client syncv1grpc.FlagSyncServiceClient) *Watcher {
 	return &Watcher{
 		Stream: make(chan syncv1Types.SyncState, 1),
-		client: client.NewClient(client.ClientConfig{
-			Host: host,
-			Port: port,
-		}),
-		Ready: make(chan struct{}),
+		client: client,
+		Ready:  make(chan struct{}),
 	}
 }
 
 func (w *Watcher) StartWatcher(ctx context.Context) error {
-	res, err := w.client.SyncFlags(ctx, connect.NewRequest(&syncv1Types.SyncFlagsRequest{
+	stream, err := w.client.SyncFlags(ctx, &syncv1Types.SyncFlagsRequest{
 		Selector: "file:./config/samples/example_flags.json",
-	}))
+	})
 	if err != nil {
 		return err
 	}
+
 	ready := false
-	for res.Receive() {
-		w.Stream <- res.Msg().State
+	for {
+		msg, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		w.Stream <- msg.State
 		if !ready {
 			ready = true
 			close(w.Ready)
 		}
 	}
-	return res.Err()
 }
 
 func (w *Watcher) Wait() error {

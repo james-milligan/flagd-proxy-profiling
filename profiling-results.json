@@ -1,0 +1,28 @@
+{
+    "tests": [
+        {
+            "totalTime": 146900500,
+            "timePerWatcher": 14690
+        },
+        {
+            "totalTime": 72747000,
+            "timePerWatcher": 7274
+        },
+        {
+            "totalTime": 205756709,
+            "timePerWatcher": 20575
+        },
+        {
+            "totalTime": 398174250,
+            "timePerWatcher": 39817
+        },
+        {
+            "totalTime": 356023250,
+            "timePerWatcher": 35602
+        }
+    ],
+    "averageTotalDuration": 235920341,
+    "averageTimePerWatcher": 23591,
+    "listeners": 10000,
+    "repeats": 5
+}
