@@ -11,12 +11,13 @@ import (
 
 	"buf.build/gen/go/open-feature/flagd/grpc/go/sync/v1/syncv1grpc"
 	"github.com/james-milligan/flagd-proxy-profiling/pkg/client"
-	trigger "github.com/james-milligan/flagd-proxy-profiling/pkg/trigger/file"
+	trigger "github.com/james-milligan/flagd-proxy-profiling/pkg/trigger"
 	"github.com/james-milligan/flagd-proxy-profiling/pkg/watcher"
 )
 
 type Handler struct {
-	config HandlerConfig
+	config  HandlerConfig
+	trigger trigger.Trigger
 }
 
 type HandlerConfig struct {
@@ -27,9 +28,9 @@ type HandlerConfig struct {
 }
 
 type TestConfig struct {
-	Listeners int
-	Repeats   int
-	Delay     time.Duration
+	Watchers int
+	Repeats  int
+	Delay    time.Duration
 }
 
 type TestResult struct {
@@ -41,29 +42,25 @@ type ProfilingResults struct {
 	Tests                 []TestResult  `json:"tests"`
 	AverageTotalDuration  time.Duration `json:"averageTotalDuration"`
 	AverageTimePerWatcher time.Duration `json:"averageTimePerWatcher"`
-	Listeners             int           `json:"listeners"`
+	Watchers              int           `json:"watchers"`
 	Repeats               int           `json:"repeats"`
 }
 
-func (h *Handler) writeFile(results ProfilingResults) error {
-	resB, err := json.MarshalIndent(results, "", "    ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(h.config.OutFile, resB, 0644)
-}
-
-func NewHandler(config HandlerConfig) *Handler {
+func NewHandler(config HandlerConfig, trigger trigger.Trigger) *Handler {
 	return &Handler{
-		config: config,
+		config:  config,
+		trigger: trigger,
 	}
 }
 
 func (h *Handler) Profile(ctx context.Context, config TestConfig) (ProfilingResults, error) {
+	if err := h.trigger.Setup(); err != nil {
+		return ProfilingResults{}, err
+	}
 	results := []TestResult{}
 	for i := 1; i <= config.Repeats; i++ {
 		fmt.Printf("starting profile %d\n", i)
-		res := h.runTest(ctx, config.Listeners)
+		res := h.runTest(ctx, config.Watchers)
 		results = append(results, res)
 		fmt.Println("-----------------------")
 		time.Sleep(config.Delay)
@@ -75,7 +72,7 @@ func (h *Handler) Profile(ctx context.Context, config TestConfig) (ProfilingResu
 		totalTime += res.TotalTime
 	}
 	out := ProfilingResults{
-		Listeners:             config.Listeners,
+		Watchers:              config.Watchers,
 		Repeats:               config.Repeats,
 		Tests:                 results,
 		AverageTotalDuration:  totalTime / time.Duration(config.Repeats),
@@ -84,17 +81,17 @@ func (h *Handler) Profile(ctx context.Context, config TestConfig) (ProfilingResu
 	return out, h.writeFile(out)
 }
 
-func (h *Handler) runTest(ctx context.Context, listeners int) TestResult {
+func (h *Handler) runTest(ctx context.Context, watchers int) TestResult {
 	readyWg := sync.WaitGroup{}
-	readyWg.Add(listeners)
+	readyWg.Add(watchers)
 
 	finishedWg := sync.WaitGroup{}
-	finishedWg.Add(listeners)
+	finishedWg.Add(watchers)
 
-	fmt.Printf("starting %d watchers...\n", listeners)
+	fmt.Printf("starting %d watchers...\n", watchers)
 	var c syncv1grpc.FlagSyncServiceClient
 	var err error
-	for i := 0; i < listeners; i++ {
+	for i := 0; i < watchers; i++ {
 		if i%250 == 0 {
 			c, err = client.NewClient(client.ClientConfig{
 				Host: h.config.Host,
@@ -125,7 +122,7 @@ func (h *Handler) runTest(ctx context.Context, listeners int) TestResult {
 	fmt.Println("all watchers ready, starting timer and writing to file...")
 	start := time.Now()
 
-	if err := trigger.UpdateFile(h.config.FilePath); err != nil {
+	if err := h.trigger.Update(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -136,9 +133,17 @@ func (h *Handler) runTest(ctx context.Context, listeners int) TestResult {
 
 	timeTaken := end.Sub(start)
 	fmt.Println("process took", timeTaken)
-	fmt.Println("time per run", timeTaken/time.Duration(listeners))
+	fmt.Println("time per run", timeTaken/time.Duration(watchers))
 	return TestResult{
 		TotalTime:      timeTaken,
-		TimePerWatcher: timeTaken / time.Duration(listeners),
+		TimePerWatcher: timeTaken / time.Duration(watchers),
 	}
+}
+
+func (h *Handler) writeFile(results ProfilingResults) error {
+	resB, err := json.MarshalIndent(results, "", "    ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(h.config.OutFile, resB, 0644)
 }
