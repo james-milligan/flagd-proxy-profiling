@@ -21,10 +21,10 @@ type Handler struct {
 }
 
 type HandlerConfig struct {
-	FilePath string
-	Host     string
-	Port     uint16
-	OutFile  string
+	FilePath string `json:"filePath"`
+	Host     string `json:"host"`
+	Port     uint16 `json:"port"`
+	OutFile  string `json:"outFile"`
 }
 
 type TestConfig struct {
@@ -53,31 +53,35 @@ func NewHandler(config HandlerConfig, trigger trigger.Trigger) *Handler {
 	}
 }
 
-func (h *Handler) Profile(ctx context.Context, config TestConfig) (ProfilingResults, error) {
-	if err := h.trigger.Setup(); err != nil {
-		return ProfilingResults{}, err
+func (h *Handler) Profile(ctx context.Context, configs []TestConfig) ([]ProfilingResults, error) {
+	out := []ProfilingResults{}
+	for _, config := range configs {
+		if err := h.trigger.Setup(); err != nil {
+			return []ProfilingResults{}, err
+		}
+		results := []TestResult{}
+		for i := 1; i <= config.Repeats; i++ {
+			fmt.Printf("starting profile %d\n", i)
+			res := h.runTest(ctx, config.Watchers)
+			results = append(results, res)
+			fmt.Println("-----------------------")
+			time.Sleep(config.Delay)
+		}
+		timePer := time.Duration(0)
+		totalTime := time.Duration(0)
+		for _, res := range results {
+			timePer += res.TimePerWatcher
+			totalTime += res.TotalTime
+		}
+		out = append(out, ProfilingResults{
+			Watchers:              config.Watchers,
+			Repeats:               config.Repeats,
+			Tests:                 results,
+			AverageTotalDuration:  totalTime / time.Duration(config.Repeats),
+			AverageTimePerWatcher: timePer / time.Duration(config.Repeats),
+		})
 	}
-	results := []TestResult{}
-	for i := 1; i <= config.Repeats; i++ {
-		fmt.Printf("starting profile %d\n", i)
-		res := h.runTest(ctx, config.Watchers)
-		results = append(results, res)
-		fmt.Println("-----------------------")
-		time.Sleep(config.Delay)
-	}
-	timePer := time.Duration(0)
-	totalTime := time.Duration(0)
-	for _, res := range results {
-		timePer += res.TimePerWatcher
-		totalTime += res.TotalTime
-	}
-	out := ProfilingResults{
-		Watchers:              config.Watchers,
-		Repeats:               config.Repeats,
-		Tests:                 results,
-		AverageTotalDuration:  totalTime / time.Duration(config.Repeats),
-		AverageTimePerWatcher: timePer / time.Duration(config.Repeats),
-	}
+
 	return out, h.writeFile(out)
 }
 
@@ -140,7 +144,7 @@ func (h *Handler) runTest(ctx context.Context, watchers int) TestResult {
 	}
 }
 
-func (h *Handler) writeFile(results ProfilingResults) error {
+func (h *Handler) writeFile(results []ProfilingResults) error {
 	resB, err := json.MarshalIndent(results, "", "    ")
 	if err != nil {
 		return err

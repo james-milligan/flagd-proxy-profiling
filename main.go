@@ -3,42 +3,37 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/james-milligan/flagd-proxy-profiling/pkg/config"
 	"github.com/james-milligan/flagd-proxy-profiling/pkg/handler"
+	itrigger "github.com/james-milligan/flagd-proxy-profiling/pkg/trigger"
 	trigger "github.com/james-milligan/flagd-proxy-profiling/pkg/trigger/file"
 )
 
-const (
-	host             = "localhost"
-	port      uint16 = 8080
-	watchers         = 10000
-	filepath         = "/Users/jamesmilligan/code/flagd-1/config/samples/example_flags.json"
-	startFile        = "./config/start-spec.json"
-	endFile          = "./config/end-spec.json"
-	outFile          = "./profiling-results.json"
-)
-
 func main() {
+	configFilepath := ""
+	if len(os.Args) == 2 {
+		configFilepath = os.Args[1]
+	}
+
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	trigger := trigger.NewFilePathTrigger(trigger.FilePathTriggerConfig{
-		StartFile:  startFile,
-		EndFile:    endFile,
-		TargetFile: filepath,
-	})
-	h := handler.NewHandler(handler.HandlerConfig{
-		Host:     host,
-		Port:     port,
-		FilePath: filepath,
-		OutFile:  outFile,
-	}, trigger)
-	results, err := h.Profile(ctx, handler.TestConfig{
-		Watchers: watchers,
-		Repeats:  5,
-		Delay:    time.Second * 1,
-	})
+	cfg, err := config.NewConfig(configFilepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var trg itrigger.Trigger
+	switch cfg.TriggerType {
+	case config.FilepathTrigger:
+		trg = trigger.NewFilePathTrigger(cfg.FileTriggerConfig)
+	default:
+		log.Fatalf("unrecognized trigger type %s", cfg.TriggerType)
+	}
+
+	h := handler.NewHandler(cfg.HandlerConfig, trg)
+	results, err := h.Profile(ctx, cfg.Tests)
 	fmt.Println(err, results)
 }

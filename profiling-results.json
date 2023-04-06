@@ -1,28 +1,142 @@
-{
-    "tests": [
-        {
-            "totalTime": 61746459,
-            "timePerWatcher": 6174
-        },
-        {
-            "totalTime": 165979583,
-            "timePerWatcher": 16597
-        },
-        {
-            "totalTime": 225761000,
-            "timePerWatcher": 22576
-        },
-        {
-            "totalTime": 304370958,
-            "timePerWatcher": 30437
-        },
-        {
-            "totalTime": 302485416,
-            "timePerWatcher": 30248
-        }
-    ],
-    "averageTotalDuration": 212068683,
-    "averageTimePerWatcher": 21206,
-    "watchers": 10000,
-    "repeats": 5
-}
+[
+    {
+        "tests": [
+            {
+                "totalTime": 1051042,
+                "timePerWatcher": 1051042
+            },
+            {
+                "totalTime": 3585708,
+                "timePerWatcher": 3585708
+            },
+            {
+                "totalTime": 4068334,
+                "timePerWatcher": 4068334
+            },
+            {
+                "totalTime": 2544250,
+                "timePerWatcher": 2544250
+            },
+            {
+                "totalTime": 1586500,
+                "timePerWatcher": 1586500
+            }
+        ],
+        "averageTotalDuration": 2567166,
+        "averageTimePerWatcher": 2567166,
+        "watchers": 1,
+        "repeats": 5
+    },
+    {
+        "tests": [
+            {
+                "totalTime": 999458,
+                "timePerWatcher": 99945
+            },
+            {
+                "totalTime": 2595042,
+                "timePerWatcher": 259504
+            },
+            {
+                "totalTime": 3322625,
+                "timePerWatcher": 332262
+            },
+            {
+                "totalTime": 2423375,
+                "timePerWatcher": 242337
+            },
+            {
+                "totalTime": 2635541,
+                "timePerWatcher": 263554
+            }
+        ],
+        "averageTotalDuration": 2395208,
+        "averageTimePerWatcher": 239520,
+        "watchers": 10,
+        "repeats": 5
+    },
+    {
+        "tests": [
+            {
+                "totalTime": 3581416,
+                "timePerWatcher": 35814
+            },
+            {
+                "totalTime": 9209500,
+                "timePerWatcher": 92095
+            },
+            {
+                "totalTime": 4741250,
+                "timePerWatcher": 47412
+            },
+            {
+                "totalTime": 4130250,
+                "timePerWatcher": 41302
+            },
+            {
+                "totalTime": 10742666,
+                "timePerWatcher": 107426
+            }
+        ],
+        "averageTotalDuration": 6481016,
+        "averageTimePerWatcher": 64809,
+        "watchers": 100,
+        "repeats": 5
+    },
+    {
+        "tests": [
+            {
+                "totalTime": 15934375,
+                "timePerWatcher": 15934
+            },
+            {
+                "totalTime": 39932416,
+                "timePerWatcher": 39932
+            },
+            {
+                "totalTime": 18308292,
+                "timePerWatcher": 18308
+            },
+            {
+                "totalTime": 24954459,
+                "timePerWatcher": 24954
+            },
+            {
+                "totalTime": 29527042,
+                "timePerWatcher": 29527
+            }
+        ],
+        "averageTotalDuration": 25731316,
+        "averageTimePerWatcher": 25731,
+        "watchers": 1000,
+        "repeats": 5
+    },
+    {
+        "tests": [
+            {
+                "totalTime": 65702208,
+                "timePerWatcher": 6570
+            },
+            {
+                "totalTime": 196408125,
+                "timePerWatcher": 19640
+            },
+            {
+                "totalTime": 334757417,
+                "timePerWatcher": 33475
+            },
+            {
+                "totalTime": 435772833,
+                "timePerWatcher": 43577
+            },
+            {
+                "totalTime": 607891250,
+                "timePerWatcher": 60789
+            }
+        ],
+        "averageTotalDuration": 328106366,
+        "averageTimePerWatcher": 32810,
+        "watchers": 10000,
+        "repeats": 5
+    }
+]

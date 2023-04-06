@@ -7,9 +7,9 @@ type FilePathTrigger struct {
 }
 
 type FilePathTriggerConfig struct {
-	StartFile  string
-	EndFile    string
-	TargetFile string
+	StartFile  string `json:"startFile"`
+	EndFile    string `json:"endFile"`
+	TargetFile string `json:"targetFile"`
 }
 
 func NewFilePathTrigger(config FilePathTriggerConfig) *FilePathTrigger {
